@@ -89,11 +89,11 @@ class YolactNode(Node):
         self.frame_counter = 0
 
     def loadWeights_(self):
-        from yolact import Yolact
-        from layers.output_utils import undo_image_transformation
-        from data import COCODetection, get_label_map, MEANS
-        from data import cfg, set_cfg, set_dataset
-        from utils.functions import SavePath
+        from .yolact.yolact import Yolact
+        from .yolact.layers.output_utils import undo_image_transformation
+        from .yolact.data import COCODetection, get_label_map, MEANS
+        from .yolact.data import cfg, set_cfg, set_dataset
+        from .yolact.utils.functions import SavePath
         try:
             self.model_path = SavePath.from_str(self.model_path_)
         except ValueError:
@@ -248,7 +248,7 @@ class YolactNode(Node):
         self.evalimage_(cv_image, msg.header)
 
     def evalimage_(self, cv_image, image_header):
-        from utils.augmentations import BaseTransform, FastBaseTransform, Resize
+        from .yolact.utils.augmentations import BaseTransform, FastBaseTransform, Resize
         with torch.no_grad():
             frame = torch.from_numpy(cv_image).cuda().float()
             batch = FastBaseTransform()(frame.unsqueeze(0))
@@ -284,9 +284,9 @@ class YolactNode(Node):
                     print(e)
 
     def postprocess_results_(self, dets_out, w, h):
-        from utils import timer
-        from data import cfg
-        from layers.output_utils import postprocess
+        from .yolact.utils import timer
+        from .yolact.data import cfg
+        from .yolact.layers.output_utils import postprocess
         with timer.env('Postprocess'):
             save = cfg.rescore_bbox
             cfg.rescore_bbox = True
@@ -306,7 +306,7 @@ class YolactNode(Node):
         return classes, scores, boxes, masks
 
     def prep_display_(self, classes, scores, boxes, masks, img, class_color=False, mask_alpha=0.45, fps_str=''):
-        from data import cfg, COLORS
+        from .yolact.data import cfg, COLORS
         img_gpu = img / 255.0
 
         num_dets_to_consider = min(self.top_k_, classes.shape[0])
@@ -411,7 +411,7 @@ class YolactNode(Node):
         return img_numpy
 
     def generate_detections_msg_(self, classes, scores, boxes, masks, image_header):
-        from data import cfg
+        from .yolact.data import cfg
         dets_msg = Detections()
         for detnum in range(len(classes)):
             det = Detection()
